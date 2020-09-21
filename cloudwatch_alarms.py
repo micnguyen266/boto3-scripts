@@ -111,7 +111,7 @@ cloudwatch = boto3.client('cloudwatch', region_name=region)
 # ================================================================================================================
 
 # Specify AWS account (Part of Naming Convention of CloudWatch Alarm)
-account_name = 'Produdction'
+account_name = 'Production'
 
 # ========================================================
 # EC2
