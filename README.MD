@@ -12,3 +12,7 @@ If using the terminal you need to install boto3. Try `pip install boto3`. To ver
 not necessary for you to input all values just the ones you need for each specific alarm.
 
 4. To run the script, go to your terminal and cd to this directory and run `python cloudwatch_alarms.py`. Then follow the prompts in the script.
+
+### Author
+
+Michael Nguyen https://github.com/micnguyen266
