@@ -1,4 +1,5 @@
 import os
+import sys
 import boto3
 
 # To Run Script
@@ -6,22 +7,27 @@ import boto3
 # 2. Run: python cloudwatch_alarms.py
 
 # ================================================================================================================
-# Environment Variables (Do not touch!)
+# AWS Profiles Function (Do not touch!)
 # ================================================================================================================
 
-# User Input AWS Profile
-print()
-print("Your AWS Profiles:")
-print()
 
-for profile in boto3.session.Session().available_profiles:
-    print(profile)
+def awsProfiles():
+    # User Input AWS Profile
+    print()
+    print("Your AWS Profiles:")
+    print()
 
-print()
-aws_profile = input("Enter Desired AWS Profile: ")
-os.environ["AWS_PROFILE"] = aws_profile
-print(os.environ["AWS_PROFILE"])
-print()
+    for profile in boto3.session.Session().available_profiles:
+        print(profile)
+
+    print()
+    aws_profile = input("Enter Desired AWS Profile: ")
+    os.environ["AWS_PROFILE"] = aws_profile
+    print(os.environ["AWS_PROFILE"])
+    print()
+
+
+awsProfiles()
 
 client = boto3.client("sts")
 account_id = client.get_caller_identity()["Account"]
@@ -106,22 +112,33 @@ def regionMain():
 region = regionMain()
 cloudwatch = boto3.client('cloudwatch', region_name=region)
 
+
+# def reset_Region():
+#     global region
+#     del region
+#     global cloudwatch
+#     del cloudwatch
+#     region = regionMain()
+#     cloudwatch = boto3.client('cloudwatch', region_name=region)
+
+
 # ================================================================================================================
 # PLEASE INPUT YOUR VALUES BELOW! (REQUIRED!!!)
 # ================================================================================================================
 
+
 # Specify AWS account (Part of Naming Convention of CloudWatch Alarm)
-account_name = 'Production'
+account_name = 'Prod'
 
 # ========================================================
 # EC2
 # ========================================================
 
 # Specify EC2 instances that needs CloudWatch monitoring
-ec2_instances = ['i-abc123456789']
+ec2_instances = ['i-abc123']
 
 # Multiple EC2 example
-# ec2_instances = ['i-abc123', 'i-abc456']
+# ec2_instances = ['i-abc456', 'i-abc789']
 
 # EC2 Operators
 # Options: GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold, GreaterThanOrEqualToThreshold
@@ -142,45 +159,61 @@ ec2_cpu_TreatMissingData = 'notBreaching'
 # ========================================================
 
 # Please put the ECS ClusterName and ServiceName
-ecs_clusternames = ['ecs-clustername']
-ecs_servicenames = 'ecs-servicename'
+ecs_clusternames = ['testcluster']
+ecs_servicenames = 'testservice'
 
 # ECS Operators
 # Options: GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold, GreaterThanOrEqualToThreshold
-ecs_cpumem_ComparisonOperator = 'GreaterThanThreshold'
 ecs_runningtask_ComparisonOperator = 'LessThanOrEqualToThreshold'
 ecs_pendingtask_ComparisonOperator = 'GreaterThanOrEqualToThreshold'
 ecs_networkRX_ComparisonOperator = 'GreaterThanOrEqualToThreshold'
 ecs_networkTX_ComparisonOperator = 'GreaterThanOrEqualToThreshold'
+ecs_cpures_ComparisonOperator = 'GreaterThanOrEqualToThreshold'
+ecs_memres_ComparisonOperator = 'GreaterThanOrEqualToThreshold'
+ecs_cpuutil_ComparisonOperator = 'GreaterThanOrEqualToThreshold'
+ecs_memutil_ComparisonOperator = 'GreaterThanOrEqualToThreshold'
+ecs_servicecount_ComparisonOperator = 'LessThanThreshold'
 
 # ECS Thresholds
-ecs_cpumem_threshold = 90
 ecs_runningtask_threshold = 0
 ecs_pendingtask_threshold = 20
-ecs_networkrxbytes_threshold = 500000000
-ecs_networktxbytes_threshold = 500000000
+ecs_networkrxbytes_threshold = 180000000
+ecs_networktxbytes_threshold = 140000000
+ecs_cpures_threshold = 350
+ecs_memres_threshold = 300
+ecs_cpuutil_threshold = 350
+ecs_memutil_threshold = 500
+ecs_servicecount_threshold = 1
 
 # ECS Datapoints to Alarm (Evaluation Period)
-ecs_cpumem_EvaluationPeriods = 5
 ecs_runningtask_EvaluationPeriods = 5
 ecs_pendingtask_EvaluationPeriods = 5
 ecs_networkRX_EvaluationPeriods = 5
 ecs_networkTX_EvaluationPeriods = 5
+ecs_cpures_EvaluationPeriods = 2
+ecs_memres_EvaluationPeriods = 2
+ecs_cpuutil_EvaluationPeriods = 5
+ecs_memutil_EvaluationPeriods = 5
+ecs_servicecount_EvaluationPeriods = 5
 
 # ECS Missing Data Treatment
 # Options: breaching, notBreaching, ignore, missing
-ecs_cpumem_TreatMissingData = 'notBreaching'
 ecs_runningtask_TreatMissingData = 'notBreaching'
 ecs_pendingtask_TreatMissingData = 'notBreaching'
 ecs_networkRX_TreatMissingData = 'notBreaching'
 ecs_networkTX_TreatMissingData = 'notBreaching'
+ecs_cpures_TreatMissingData = 'notBreaching'
+ecs_memres_TreatMissingData = 'notBreaching'
+ecs_cpuutil_TreatMissingData = 'notBreaching'
+ecs_memutil_TreatMissingData = 'notBreaching'
+ecs_servicecount_TreatMissingData = 'notBreaching'
 
 # ========================================================
 # DynamoDB Table
 # ========================================================
 
 # DynamoDB Table Name
-dynamodb_tablenames = ['dynamodb-tablename']
+dynamodb_tablenames = ['testtable']
 
 # Used with successfulrequestlatency metric
 dynamodb_table_operation = 'GetItem'
@@ -212,13 +245,13 @@ dynamodb_table_readcap_TreatMissingData = 'breaching'
 # ========================================================
 
 # LoadBalancer Name
-lb_names = ['app/test/12345']
+lb_names = ['net/test']
 
 # LB TargetGroup
-lb_targetgroup = 'targetgroup/test/12345'
+lb_targetgroup = 'targetgroup/test'
 
 # LB Namespace
-lb_namespace = 'AWS/ApplicationELB'
+lb_namespace = 'AWS/NetworkELB'
 
 # LB Operators
 # Options: GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold, GreaterThanOrEqualToThreshold
@@ -252,7 +285,7 @@ lb_unhealthyhostcount_statistic = 'Average'
 # ========================================================
 
 # Kinesis Name
-kinesis_streamNames = ['abc123test']
+kinesis_streamNames = ['teststream']
 
 # Kinesis Operators
 # Options: GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold, GreaterThanOrEqualToThreshold
@@ -281,39 +314,49 @@ kinesis_ReadProvision_statistic = 'Average'
 # ========================================================
 
 # Lambda Name
-lambda_functionNames = ['lambdaname-test']
+lambda_functionNames = ['lambda-test']
 
 # Lambda Operators
 # Options: GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold, GreaterThanOrEqualToThreshold
 lambda_errors_ComparisonOperator = 'GreaterThanThreshold'
 lambda_throttles_ComparisonOperator = 'GreaterThanThreshold'
+lambda_duration_ComparisonOperator = 'GreaterThanThreshold'
+lambda_iterator_ComparisonOperator = 'GreaterThanThreshold'
 
 # Lambda Thresholds
-lambda_errors_threshold = 1
-lambda_throttles_threshold = 1
+lambda_errors_threshold = 50
+lambda_throttles_threshold = 5
+lambda_duration_threshold = 5000
+lambda_iterator_threshold = 3000
 
 # Lambda Datapoints to Alarm (Evaluation Period)
-lambda_errors_EvaluationPeriods = 3
-lambda_throttles_EvaluationPeriods = 3
+lambda_errors_EvaluationPeriods = 5
+lambda_throttles_EvaluationPeriods = 5
+lambda_duration_EvaluationPeriods = 5
+lambda_iterator_EvaluationPeriods = 5
 
 # Lambda Missing Data Treatment
 # Options: breaching, notBreaching, ignore, missing
-lambda_errors_TreatMissingData = 'missing'
-lambda_throttles_TreatMissingData = 'missing'
+lambda_errors_TreatMissingData = 'notBreaching'
+lambda_throttles_TreatMissingData = 'notBreaching'
+lambda_duration_TreatMissingData = 'notBreaching'
+lambda_iterator_TreatMissingData = 'notBreaching'
 
 # Lambda Statistic
 lambda_errors_statistic = 'Average'
 lambda_throttles_statistic = 'Average'
+lambda_duration_statistic = 'Average'
+lambda_iterator_statistic = 'Average'
 
 # ========================================================
 # Elasticache
 # ========================================================
 
 # Elasticache CacheClusterId
-elasticache_CacheClusterIds = ['clusterid001', 'clusterid002']
+elasticache_CacheClusterIds = ['test1', 'test2']
 
 # Elasticache CacheNodeId
-elasticache_CacheNodeId = '0001'
+elasticache_CacheNodeId = 'test'
 
 # Elasticache Operators
 # Options: GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold, GreaterThanOrEqualToThreshold
@@ -340,17 +383,23 @@ elasticache_cpu_period = 600
 # ========================================================
 
 # Specify existing SNS Topic(s) (In Alarm and OK notifications will both be created)
-sns_topic_name = 'snstopic_test'
-sns_topic_name2 = 'snstopic_test2'
+sns_topic_name = 'test1'
+sns_topic_name2 = 'test2'
+sns_topic_name3 = 'test3'
 
 # Do not touch!
 alarm_sns = 'arn:aws:sns:{}:{}:{}'.format(region, account_id, sns_topic_name)
 alarm_sns2 = 'arn:aws:sns:{}:{}:{}'.format(region, account_id, sns_topic_name2)
+alarm_sns3 = 'arn:aws:sns:{}:{}:{}'.format(region, account_id, sns_topic_name3)
 
-# Add/Remove 2nd SNS variable "alarm_sns2" below if necessary. E.g. [alarm_sns, alarm_sns2] or [alarm_sns]
-allAlarmActions = [alarm_sns, alarm_sns2]
-allOKActions = [alarm_sns, alarm_sns2]
-
+# Comment/Uncomment if you want 1/2/3 SNS topics below as necessary.
+# E.g. [alarm_sns, alarm_sns2, alarm_sns3], [alarm_sns, alarm_sns2] or [alarm_sns]
+# allAlarmActions = [alarm_sns]
+# allAlarmActions = [alarm_sns, alarm_sns2]
+allAlarmActions = [alarm_sns, alarm_sns2, alarm_sns3]
+# allOKActions = [alarm_sns]
+# allOKActions = [alarm_sns, alarm_sns2]
+allOKActions = [alarm_sns, alarm_sns2, alarm_sns3]
 
 # ================================================================================================================
 # CloudWatch Functions (Do not touch!)
@@ -425,65 +474,7 @@ def deleteCloudwatchEC2():
 def createCloudwatchECS():
     for ecs_clustername in ecs_clusternames:
         cloudwatch.put_metric_alarm(
-            AlarmName='ecs-{} - CPU Utilization above {}% ({}-{})'.format(ecs_clustername, ecs_cpumem_threshold,
-                                                                          region,
-                                                                          account_name),
-            ComparisonOperator=ecs_cpumem_ComparisonOperator,
-            EvaluationPeriods=ecs_cpumem_EvaluationPeriods,
-            MetricName='CPUUtilization',
-            Namespace='AWS/ECS',
-            Period=300,
-            Statistic='Average',
-            Threshold=ecs_cpumem_threshold,
-            ActionsEnabled=True,
-            AlarmActions=allAlarmActions,
-            OKActions=allOKActions,
-            AlarmDescription='Alerts when ECS CPU Utilization exceeds {}%'.format(ecs_cpumem_threshold),
-            TreatMissingData=ecs_cpumem_TreatMissingData,
-            Dimensions=[
-                {
-                    'Name': 'ClusterName',
-                    'Value': ecs_clustername
-                },
-                {
-                    'Name': 'ServiceName',
-                    'Value': ecs_servicenames
-                },
-            ],
-        )
-    for ecs_clustername in ecs_clusternames:
-        cloudwatch.put_metric_alarm(
-            AlarmName='ecs-{} - Memory Utilization above {}% ({}-{})'.format(ecs_clustername, ecs_cpumem_threshold,
-                                                                             region, account_name),
-            ComparisonOperator=ecs_cpumem_ComparisonOperator,
-            EvaluationPeriods=ecs_cpumem_EvaluationPeriods,
-            MetricName='MemoryUtilization',
-            Namespace='AWS/ECS',
-            Period=300,
-            Statistic='Average',
-            Threshold=ecs_cpumem_threshold,
-            ActionsEnabled=True,
-            AlarmActions=allAlarmActions,
-            OKActions=allOKActions,
-            AlarmDescription='Alerts when ECS Memory Utilization exceeds {}%'.format(ecs_cpumem_threshold),
-            TreatMissingData=ecs_cpumem_TreatMissingData,
-            Dimensions=[
-                {
-                    'Name': 'ClusterName',
-                    'Value': ecs_clustername
-                },
-                {
-                    'Name': 'ServiceName',
-                    'Value': ecs_servicenames
-                },
-            ],
-        )
-    for ecs_clustername in ecs_clusternames:
-        cloudwatch.put_metric_alarm(
-            AlarmName='ecs-{} - Running Task less than or equal to {} ({}-{})'.format(ecs_clustername,
-                                                                                      ecs_runningtask_threshold,
-                                                                                      region,
-                                                                                      account_name),
+            AlarmName='{}-RunningTaskCount ({}-{})'.format(ecs_servicenames, region, account_name),
             ComparisonOperator=ecs_runningtask_ComparisonOperator,
             EvaluationPeriods=ecs_runningtask_EvaluationPeriods,
             MetricName='RunningTaskCount',
@@ -494,8 +485,8 @@ def createCloudwatchECS():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when Running Task Count is less than or equal to {}'.format(
-                ecs_runningtask_threshold),
+            AlarmDescription='Alerts when Running Task Count is {} to {}'.format(
+                ecs_runningtask_ComparisonOperator, ecs_runningtask_threshold),
             TreatMissingData=ecs_runningtask_TreatMissingData,
             Dimensions=[
                 {
@@ -510,9 +501,7 @@ def createCloudwatchECS():
         )
     for ecs_clustername in ecs_clusternames:
         cloudwatch.put_metric_alarm(
-            AlarmName='ecs-{} - Pending Task greater than or equal to {} ({}-{})'.format(ecs_clustername,
-                                                                                         ecs_pendingtask_threshold,
-                                                                                         region, account_name),
+            AlarmName='{}-PendingTaskCount ({}-{})'.format(ecs_servicenames, region, account_name),
             ComparisonOperator=ecs_pendingtask_ComparisonOperator,
             EvaluationPeriods=ecs_pendingtask_EvaluationPeriods,
             MetricName='PendingTaskCount',
@@ -523,8 +512,8 @@ def createCloudwatchECS():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when Pending Task Count is greater than or equal to {}'.format(
-                ecs_pendingtask_threshold),
+            AlarmDescription='Alerts when Pending Task Count is {} to {}'.format(
+                ecs_pendingtask_ComparisonOperator, ecs_pendingtask_threshold),
             TreatMissingData=ecs_pendingtask_TreatMissingData,
             Dimensions=[
                 {
@@ -539,7 +528,7 @@ def createCloudwatchECS():
         )
     for ecs_clustername in ecs_clusternames:
         cloudwatch.put_metric_alarm(
-            AlarmName='ecs-{} - Network_RX_Bytes ({}-{})'.format(ecs_clustername, region, account_name),
+            AlarmName='{}-NetworkRXBytes ({}-{})'.format(ecs_servicenames, region, account_name),
             ComparisonOperator=ecs_networkRX_ComparisonOperator,
             EvaluationPeriods=ecs_networkRX_EvaluationPeriods,
             MetricName='NetworkRxBytes',
@@ -550,8 +539,8 @@ def createCloudwatchECS():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when Network_RX_Bytes is greater than or equal to {}'.format(
-                ecs_networkrxbytes_threshold),
+            AlarmDescription='Alerts when NetworkRXBytes is {} to {}'.format(
+                ecs_networkRX_ComparisonOperator, ecs_networkrxbytes_threshold),
             TreatMissingData=ecs_networkRX_TreatMissingData,
             Dimensions=[
                 {
@@ -567,7 +556,7 @@ def createCloudwatchECS():
 
     for ecs_clustername in ecs_clusternames:
         cloudwatch.put_metric_alarm(
-            AlarmName='ecs-{} - Network_TX_Bytes ({}-{})'.format(ecs_clustername, region, account_name),
+            AlarmName='{}-NetworkTXBytes ({}-{})'.format(ecs_servicenames, region, account_name),
             ComparisonOperator=ecs_networkTX_ComparisonOperator,
             EvaluationPeriods=ecs_networkTX_EvaluationPeriods,
             MetricName='NetworkTxBytes',
@@ -578,9 +567,144 @@ def createCloudwatchECS():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when Network_TX_Bytes is greater than or equal to {}'.format(
-                ecs_networktxbytes_threshold),
+            AlarmDescription='Alerts when Network_TX_Bytes is {} to {}'.format(
+                ecs_networkTX_ComparisonOperator, ecs_networktxbytes_threshold),
             TreatMissingData=ecs_networkTX_TreatMissingData,
+            Dimensions=[
+                {
+                    'Name': 'ClusterName',
+                    'Value': ecs_clustername
+                },
+                {
+                    'Name': 'ServiceName',
+                    'Value': ecs_servicenames
+                },
+            ],
+        )
+    for ecs_clustername in ecs_clusternames:
+        cloudwatch.put_metric_alarm(
+            AlarmName='{}-CPUReserved ({}-{})'.format(ecs_servicenames, region, account_name),
+            ComparisonOperator=ecs_cpures_ComparisonOperator,
+            EvaluationPeriods=ecs_cpures_EvaluationPeriods,
+            MetricName='CpuReserved',
+            Namespace='ECS/ContainerInsights',
+            Period=300,
+            Statistic='Average',
+            Threshold=ecs_cpures_threshold,
+            ActionsEnabled=True,
+            AlarmActions=allAlarmActions,
+            OKActions=allOKActions,
+            AlarmDescription='Alerts when Running Task Count is {} to {}'.format(
+                ecs_cpures_ComparisonOperator, ecs_cpures_threshold),
+            TreatMissingData=ecs_cpures_TreatMissingData,
+            Dimensions=[
+                {
+                    'Name': 'ClusterName',
+                    'Value': ecs_clustername
+                },
+                {
+                    'Name': 'ServiceName',
+                    'Value': ecs_servicenames
+                },
+            ],
+        )
+    for ecs_clustername in ecs_clusternames:
+        cloudwatch.put_metric_alarm(
+            AlarmName='{}-MemoryReserved ({}-{})'.format(ecs_servicenames, region, account_name),
+            ComparisonOperator=ecs_memres_ComparisonOperator,
+            EvaluationPeriods=ecs_memres_EvaluationPeriods,
+            MetricName='MemoryReserved',
+            Namespace='ECS/ContainerInsights',
+            Period=300,
+            Statistic='Average',
+            Threshold=ecs_memres_threshold,
+            ActionsEnabled=True,
+            AlarmActions=allAlarmActions,
+            OKActions=allOKActions,
+            AlarmDescription='Alerts when Running Task Count is {} to {}'.format(
+                ecs_memres_ComparisonOperator, ecs_memres_threshold),
+            TreatMissingData=ecs_memres_TreatMissingData,
+            Dimensions=[
+                {
+                    'Name': 'ClusterName',
+                    'Value': ecs_clustername
+                },
+                {
+                    'Name': 'ServiceName',
+                    'Value': ecs_servicenames
+                },
+            ],
+        )
+    for ecs_clustername in ecs_clusternames:
+        cloudwatch.put_metric_alarm(
+            AlarmName='{}-CPUUtilization ({}-{})'.format(ecs_servicenames, region, account_name),
+            ComparisonOperator=ecs_cpuutil_ComparisonOperator,
+            EvaluationPeriods=ecs_cpuutil_EvaluationPeriods,
+            MetricName='CpuUtilized',
+            Namespace='ECS/ContainerInsights',
+            Period=300,
+            Statistic='Average',
+            Threshold=ecs_cpuutil_threshold,
+            ActionsEnabled=True,
+            AlarmActions=allAlarmActions,
+            OKActions=allOKActions,
+            AlarmDescription='Alerts when Running Task Count is {} to {}'.format(
+                ecs_cpuutil_ComparisonOperator, ecs_cpuutil_threshold),
+            TreatMissingData=ecs_cpuutil_TreatMissingData,
+            Dimensions=[
+                {
+                    'Name': 'ClusterName',
+                    'Value': ecs_clustername
+                },
+                {
+                    'Name': 'ServiceName',
+                    'Value': ecs_servicenames
+                },
+            ],
+        )
+    for ecs_clustername in ecs_clusternames:
+        cloudwatch.put_metric_alarm(
+            AlarmName='{}-MemoryUtilized ({}-{})'.format(ecs_servicenames, region, account_name),
+            ComparisonOperator=ecs_memutil_ComparisonOperator,
+            EvaluationPeriods=ecs_memutil_EvaluationPeriods,
+            MetricName='MemoryUtilized',
+            Namespace='ECS/ContainerInsights',
+            Period=300,
+            Statistic='Average',
+            Threshold=ecs_memutil_threshold,
+            ActionsEnabled=True,
+            AlarmActions=allAlarmActions,
+            OKActions=allOKActions,
+            AlarmDescription='Alerts when Running Task Count is {} to {}'.format(
+                ecs_memutil_ComparisonOperator, ecs_memutil_threshold),
+            TreatMissingData=ecs_memutil_TreatMissingData,
+            Dimensions=[
+                {
+                    'Name': 'ClusterName',
+                    'Value': ecs_clustername
+                },
+                {
+                    'Name': 'ServiceName',
+                    'Value': ecs_servicenames
+                },
+            ],
+        )
+    for ecs_clustername in ecs_clusternames:
+        cloudwatch.put_metric_alarm(
+            AlarmName='{}-ServiceCount ({}-{})'.format(ecs_servicenames, region, account_name),
+            ComparisonOperator=ecs_servicecount_ComparisonOperator,
+            EvaluationPeriods=ecs_servicecount_EvaluationPeriods,
+            MetricName='ServiceCount',
+            Namespace='ECS/ContainerInsights',
+            Period=300,
+            Statistic='Average',
+            Threshold=ecs_servicecount_threshold,
+            ActionsEnabled=True,
+            AlarmActions=allAlarmActions,
+            OKActions=allOKActions,
+            AlarmDescription='Alerts when Running Task Count is {} to {}'.format(
+                ecs_servicecount_ComparisonOperator, ecs_servicecount_threshold),
+            TreatMissingData=ecs_servicecount_TreatMissingData,
             Dimensions=[
                 {
                     'Name': 'ClusterName',
@@ -596,23 +720,18 @@ def createCloudwatchECS():
 
 
 def deleteCloudwatchECS():
-    for ecs_clustername in ecs_clusternames:
+    for ecs_servicename in ecs_servicenames:
         cloudwatch.delete_alarms(
             AlarmNames=[
-                'ecs-{} - CPU Utilization above {}% ({}-{})'.format(ecs_clustername, ecs_cpumem_threshold, region,
-                                                                    account_name),
-                'ecs-{} - Memory Utilization above {}% ({}-{})'.format(ecs_clustername, ecs_cpumem_threshold,
-                                                                       region,
-                                                                       account_name),
-                'ecs-{} - Running Task less than or equal to {} ({}-{})'.format(ecs_clustername,
-                                                                                ecs_runningtask_threshold, region,
-                                                                                account_name),
-                'ecs-{} - Pending Task greater than or equal to {} ({}-{})'.format(ecs_clustername,
-                                                                                   ecs_pendingtask_threshold,
-                                                                                   region,
-                                                                                   account_name),
-                'ecs-{} - Network_RX_Bytes ({}-{})'.format(ecs_clustername, region, account_name),
-                'ecs-{} - Network_TX_Bytes ({}-{})'.format(ecs_clustername, region, account_name), ],
+                '{}-RunningTaskCount ({}-{})'.format(ecs_servicename, region, account_name),
+                '{}-PendingTaskCount ({}-{})'.format(ecs_servicename, region, account_name),
+                '{}-NetworkTXBytes ({}-{})'.format(ecs_servicename, region, account_name),
+                '{}-NetworkRXBytes ({}-{})'.format(ecs_servicename, region, account_name),
+                '{}-CPUReservation ({}-{})'.format(ecs_servicename, region, account_name),
+                '{}-MemoryReserved ({}-{})'.format(ecs_servicename, region, account_name),
+                '{}-CPUUtilization ({}-{})'.format(ecs_servicename, region, account_name),
+                '{}-MemoryUtilized ({}-{})'.format(ecs_servicename, region, account_name),
+                '{}-ServiceCount ({}-{})'.format(ecs_servicename, region, account_name)],
         )
     print('ECS alarms Deleted For ClusterName:', ecs_clusternames, 'ServiceName:', ecs_servicenames)
 
@@ -620,9 +739,8 @@ def deleteCloudwatchECS():
 def createCloudwatchDynamoDBTable():
     for dynamodb_tablename in dynamodb_tablenames:
         cloudwatch.put_metric_alarm(
-            AlarmName='dynamodb table {} - {} successful request latency above or equal {} ms ({}-{})'.format(
-                dynamodb_tablename, dynamodb_table_operation, successfulrequestlatency_threshold, region,
-                account_name),
+            AlarmName='{}-SuccessfulRequestLatency ({}-{})'.format(
+                dynamodb_tablename, region, account_name),
             ComparisonOperator=dynamodb_table_srl_ComparisonOperator,
             EvaluationPeriods=dynamodb_table_srl_EvaluationPeriods,
             MetricName='SuccessfulRequestLatency',
@@ -633,25 +751,21 @@ def createCloudwatchDynamoDBTable():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when DynamoDB table {} successful request latency is above or equal {} Milliseconds'.format(
-                dynamodb_table_operation, successfulrequestlatency_threshold),
+            AlarmDescription='Alerts when DynamoDB table {} successful request latency is {} to {} Milliseconds'.format(
+                dynamodb_table_operation, dynamodb_table_srl_ComparisonOperator, successfulrequestlatency_threshold),
             TreatMissingData=dynamodb_table_srl_TreatMissingData,
             Dimensions=[
                 {
                     'Name': 'TableName',
                     'Value': dynamodb_tablename
                 },
-                {
-                    'Name': 'Operation',
-                    'Value': dynamodb_table_operation
-                },
             ],
         )
 
     for dynamodb_tablename in dynamodb_tablenames:
         cloudwatch.put_metric_alarm(
-            AlarmName='dynamodb table {} - consumed write capacity above or equal {} units ({}-{})'.format(
-                dynamodb_tablename, successfulrequestlatency_threshold, region, account_name),
+            AlarmName='{}-ConsumedWriteCapacityUnits ({}-{})'.format(
+                dynamodb_tablename, region, account_name),
             ComparisonOperator=dynamodb_table_writecap_ComparisonOperator,
             EvaluationPeriods=dynamodb_table_writecap_EvaluationPeriods,
             MetricName='ConsumedWriteCapacityUnits',
@@ -662,8 +776,8 @@ def createCloudwatchDynamoDBTable():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when DynamoDB table consumed write capacity is above or equal {} units'.format(
-                consumedwritecapacityunits_threshold),
+            AlarmDescription='Alerts when DynamoDB table consumed write capacity is {} to {} units'.format(
+                dynamodb_table_writecap_ComparisonOperator, consumedwritecapacityunits_threshold),
             TreatMissingData=dynamodb_table_writecap_TreatMissingData,
             Dimensions=[
                 {
@@ -675,8 +789,8 @@ def createCloudwatchDynamoDBTable():
 
     for dynamodb_tablename in dynamodb_tablenames:
         cloudwatch.put_metric_alarm(
-            AlarmName='dynamodb table {} - consumed read capacity above or equal {} units ({}-{})'.format(
-                dynamodb_tablename, successfulrequestlatency_threshold, region, account_name),
+            AlarmName='{}-ConsumedReadCapacityUnits ({}-{})'.format(
+                dynamodb_tablename, region, account_name),
             ComparisonOperator=dynamodb_table_readcap_ComparisonOperator,
             EvaluationPeriods=dynamodb_table_readcap_EvaluationPeriods,
             MetricName='ConsumedReadCapacityUnits',
@@ -687,8 +801,8 @@ def createCloudwatchDynamoDBTable():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when DynamoDB table consumed read capacity is above or equal {} units'.format(
-                consumedreadcapacityunits_threshold),
+            AlarmDescription='Alerts when DynamoDB table consumed read capacity is {} to {} units'.format(
+                dynamodb_table_readcap_ComparisonOperator, consumedreadcapacityunits_threshold),
             TreatMissingData=dynamodb_table_readcap_TreatMissingData,
             Dimensions=[
                 {
@@ -704,17 +818,9 @@ def deleteCloudwatchDynamoDBTable():
     for dynamodb_tablename in dynamodb_tablenames:
         cloudwatch.delete_alarms(
             AlarmNames=[
-                'dynamodb table {} - {} successful request latency above or equal {} ms ({}-{})'.format(
-                    dynamodb_tablename, dynamodb_table_operation, successfulrequestlatency_threshold, region,
-                    account_name),
-                'dynamodb table {} - consumed write capacity above or equal {} units ({}-{})'.format(dynamodb_tablename,
-                                                                                                     consumedwritecapacityunits_threshold,
-                                                                                                     region,
-                                                                                                     account_name),
-                'dynamodb table {} - consumed read capacity above or equal {} units ({}-{})'.format(dynamodb_tablename,
-                                                                                                    consumedreadcapacityunits_threshold,
-                                                                                                    region,
-                                                                                                    account_name)],
+                '{}-SuccessfulRequestLatency ({}-{})'.format(dynamodb_tablename, region, account_name),
+                '{}-ConsumedWriteCapacityUnits ({}-{})'.format(dynamodb_tablename, region, account_name),
+                '{}-ConsumedReadCapacityUnits ({}-{})'.format(dynamodb_tablename, region, account_name)],
         )
     print('DynamoDB Tables alarms Deleted For TableName:', dynamodb_tablenames)
 
@@ -824,14 +930,14 @@ def deleteCloudwatchLB():
                                                                                    lb_unhealthyhostcount_threshold,
                                                                                    region, account_name), ],
         )
-    print('DynamoDB Tables alarms Deleted For TableName:', lb_names)
+    print('LB alarms Deleted For Load Balancer:', lb_names)
 
 
 def createCloudwatchKinesis():
     for kinesis_streamName in kinesis_streamNames:
         cloudwatch.put_metric_alarm(
-            AlarmName='Kinesis - {} - ReadProvisionedThroughputExceeded above or equal {} ({}-{})'.format(
-                kinesis_streamName, kinesis_ReadProvision_threshold, region, account_name),
+            AlarmName='{}-ReadProvisionedThroughputExceeded ({}-{})'.format(
+                kinesis_streamName, region, account_name),
             ComparisonOperator=kinesis_ReadProvision_ComparisonOperator,
             EvaluationPeriods=kinesis_ReadProvision_EvaluationPeriods,
             MetricName='ReadProvisionedThroughputExceeded',
@@ -854,8 +960,8 @@ def createCloudwatchKinesis():
         )
     for kinesis_streamName in kinesis_streamNames:
         cloudwatch.put_metric_alarm(
-            AlarmName='Kinesis - {} - WriteProvisionedThroughputExceeded above or equal {} ({}-{})'.format(
-                kinesis_streamName, kinesis_WriteProvision_threshold, region, account_name),
+            AlarmName='{}-WriteProvisionedThroughputExceeded ({}-{})'.format(
+                kinesis_streamName, region, account_name),
             ComparisonOperator=kinesis_WriteProvision_ComparisonOperator,
             EvaluationPeriods=kinesis_WriteProvision_EvaluationPeriods,
             MetricName='WriteProvisionedThroughputExceeded',
@@ -898,8 +1004,8 @@ def deleteCloudwatchKinesis():
 def createCloudwatchLambda():
     for lambda_functionName in lambda_functionNames:
         cloudwatch.put_metric_alarm(
-            AlarmName='Lambda - {} - Errors above {} Count ({}-{})'.format(
-                lambda_functionName, lambda_errors_threshold, region, account_name),
+            AlarmName='Lambda - {} - Errors ({}-{})'.format(
+                lambda_functionName,region, account_name),
             ComparisonOperator=lambda_errors_ComparisonOperator,
             EvaluationPeriods=lambda_errors_EvaluationPeriods,
             MetricName='Errors',
@@ -910,8 +1016,8 @@ def createCloudwatchLambda():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when Lambda {} Errors above {} Count'.format(
-                lambda_functionName, lambda_errors_threshold),
+            AlarmDescription='Alerts when Lambda {} Errors is {} to {}'.format(
+                lambda_functionName, lambda_errors_ComparisonOperator, lambda_errors_threshold),
             TreatMissingData=lambda_errors_TreatMissingData,
             Dimensions=[
                 {
@@ -922,8 +1028,8 @@ def createCloudwatchLambda():
         )
     for lambda_functionName in lambda_functionNames:
         cloudwatch.put_metric_alarm(
-            AlarmName='Lambda - {} - Throttles above {} Count ({}-{})'.format(
-                lambda_functionName, lambda_throttles_threshold, region, account_name),
+            AlarmName='Lambda - {} - Throttles ({}-{})'.format(
+                lambda_functionName, region, account_name),
             ComparisonOperator=lambda_throttles_ComparisonOperator,
             EvaluationPeriods=lambda_throttles_EvaluationPeriods,
             MetricName='Throttles',
@@ -934,9 +1040,57 @@ def createCloudwatchLambda():
             ActionsEnabled=True,
             AlarmActions=allAlarmActions,
             OKActions=allOKActions,
-            AlarmDescription='Alerts when Lambda {} Throttles above {} Count'.format(
-                lambda_functionName, lambda_throttles_threshold),
+            AlarmDescription='Alerts when Lambda {} Throttles is {} to {}'.format(
+                lambda_functionName, lambda_throttles_ComparisonOperator, lambda_throttles_threshold),
             TreatMissingData=lambda_throttles_TreatMissingData,
+            Dimensions=[
+                {
+                    'Name': 'FunctionName',
+                    'Value': lambda_functionName
+                },
+            ],
+        )
+    for lambda_functionName in lambda_functionNames:
+        cloudwatch.put_metric_alarm(
+            AlarmName='Lambda - {} - Duration ({}-{})'.format(
+                lambda_functionName, region, account_name),
+            ComparisonOperator=lambda_duration_ComparisonOperator,
+            EvaluationPeriods=lambda_duration_EvaluationPeriods,
+            MetricName='Duration',
+            Namespace='AWS/Lambda',
+            Period=300,
+            Statistic=lambda_duration_statistic,
+            Threshold=lambda_duration_threshold,
+            ActionsEnabled=True,
+            AlarmActions=allAlarmActions,
+            OKActions=allOKActions,
+            AlarmDescription='Alerts when Lambda {} Duration is {} to {}'.format(
+                lambda_functionName, lambda_duration_ComparisonOperator, lambda_duration_threshold),
+            TreatMissingData=lambda_duration_TreatMissingData,
+            Dimensions=[
+                {
+                    'Name': 'FunctionName',
+                    'Value': lambda_functionName
+                },
+            ],
+        )
+    for lambda_functionName in lambda_functionNames:
+        cloudwatch.put_metric_alarm(
+            AlarmName='Lambda - {} - IteratorAge ({}-{})'.format(
+                lambda_functionName, region, account_name),
+            ComparisonOperator=lambda_iterator_ComparisonOperator,
+            EvaluationPeriods=lambda_iterator_EvaluationPeriods,
+            MetricName='IteratorAge',
+            Namespace='AWS/Lambda',
+            Period=300,
+            Statistic=lambda_iterator_statistic,
+            Threshold=lambda_iterator_threshold,
+            ActionsEnabled=True,
+            AlarmActions=allAlarmActions,
+            OKActions=allOKActions,
+            AlarmDescription='Alerts when Lambda {} IteratorAge is {} to {}'.format(
+                lambda_functionName, lambda_iterator_ComparisonOperator, lambda_iterator_threshold),
+            TreatMissingData=lambda_iterator_TreatMissingData,
             Dimensions=[
                 {
                     'Name': 'FunctionName',
@@ -951,10 +1105,10 @@ def deleteCloudwatchLambda():
     for lambda_functionName in lambda_functionNames:
         cloudwatch.delete_alarms(
             AlarmNames=[
-                'Lambda - {} - Errors above {} Count ({}-{})'.format(lambda_functionName, lambda_errors_threshold,
-                                                                     region, account_name),
-                'Lambda - {} - Throttles above {} Count ({}-{})'.format(lambda_functionName, lambda_throttles_threshold,
-                                                                        region, account_name)],
+                'Lambda - {} - Errors ({}-{})'.format(lambda_functionName,region, account_name),
+                'Lambda - {} - Throttles ({}-{})'.format(lambda_functionName, region, account_name),
+                'Lambda - {} - Duration ({}-{})'.format(lambda_functionName, region, account_name),
+                'Lambda - {} - IteratorAge ({}-{})'.format(lambda_functionName, region, account_name)],
         )
     print('Lambda alarms Deleted For FunctionName:', lambda_functionNames)
 
@@ -1027,7 +1181,8 @@ def menu():
     print("     [14] Delete Elasticache CloudWatch Alarm(s)")
     print("     [15] Create All CloudWatch Alarm(s)")
     print("     [16] Delete All CloudWatch Alarm(s)")
-    print("     [0] Exit the script.")
+    print("     [17] Restart Script. Deletes Variables from Memory.")
+    print("     [0] Exit the script")
 
 
 def main():
@@ -1097,6 +1252,8 @@ def main():
             deleteCloudwatchLambda()
             deleteCloudwatchElasticache()
             input("Press Enter to continue...")
+        elif option == 17:
+            os.execl(sys.executable, sys.executable, *sys.argv)
         else:
             print()
             print(option, "is an invalid option.")
@@ -1112,3 +1269,4 @@ def main():
 
 
 main()
+
